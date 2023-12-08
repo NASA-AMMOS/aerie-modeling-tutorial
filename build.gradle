@@ -38,10 +38,16 @@ tasks.named('test') {
 
 dependencies {
   annotationProcessor 'gov.nasa.jpl.aerie:merlin-framework-processor:+'
-  implementation 'gov.nasa.jpl.aerie:contrib:+'
+  //implementation 'gov.nasa.jpl.aerie:contrib:+'
   implementation 'gov.nasa.jpl.aerie:merlin-framework:+'
   implementation 'gov.nasa.jpl.aerie:merlin-sdk:+'
+  implementation 'gov.nasa.jpl.aerie:merlin-driver:+'
   implementation 'gov.nasa.jpl.aerie:parsing-utilities:+'
+  implementation 'org.apache.commons:commons-math3:+'
+
   testImplementation 'gov.nasa.jpl.aerie:merlin-framework-junit:+'
   testImplementation 'org.junit.jupiter:junit-jupiter:+'
+
+  implementation files("src/main/resources/contrib.jar")
+  testImplementation files("src/main/resources/contrib.jar")
 }

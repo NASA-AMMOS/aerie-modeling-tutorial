@@ -1,43 +1,60 @@
-# Aerie Mission Model Template
+# Aerie Modeling Tutorial
 
-This repo provides an Aerie mission model template for a fictitious mission called [FireSat](http://www.sme-smad.com/). It is meant as a starting point for building a new mission model in Aerie.
+This repo houses the simple on-board spacecraft solid state recorder model that you will build as part of Aerie's modeling tutorial.
+While we recommend you go through the tutorial, this model also serves as an example you can use to jump start your own modeling efforts.
+The model includes a resource that tracks recording rate and few different resources that show different ways in which you can integrate rate to get data volume over time.
+A couple of different style data collection activities are also included to trigger recording rate changes.
 
-## Prerequisites
+## Outline
+- Make sure you have access to an Aerie deployment (see FastTrack for a quick local install)
+- Create new repo with mission model template (i.e. follow mission model template instructions) and make sure it compiles
+  - With David's new framework, we should update this to account for his register in the Mission class
+  - Also will need to update dependencies in build.gradle
+  - Potentially suggest not including any activities/resources in the template...
+- Create RecordingRate resource in a DataModel class
+  - This will be a discrete resource
+     + Briefly provide overview of a discrete resource
+     + Note we will be talking about polynomial resources later
+  - Register resource to UI
+- Create simple CollectData activity for a camera
+  - 2 parameters (duration, rate)
+  - Show simple approach to changing rate (increase/delay/decrease)
+     + Briefly talk about effects, non-consumable vs. consumable, why using "set" is not the best option
+     + Note the non-consumable approach that could hae been used to produce the same result (using clause)
+  - Make sure to note how the package-info has to be updated
+- Compile and load model into Aerie for a first look
+  - Create a couple collect data activities (maybe overlapping) to see more interesting effect
+  - Simulate
+  - ![Tutorial Plan 1](docs/Tutorial_Plan_1.png)
+- Create a second resource to tracks different data collection modes for a magnetometer that continuously collects data
+  - Create enumeration class that maps mode to data rate
+  - Create discrete state resource
+- Create simple activity, ChangeMagMode, to change instrumentB mode, which in turn will change its data rate
+  - This shows how you can get the current value of resource and use it for computation
+- Introduce a derived resource for showing just the mag data collection rate instead of the total recording rate
+- Compile and load the model into Aerie again for a second look
+  - Put both types of activities in plan and see how it changes the two rate resources and how mode is tracked
+  - ![Tutorial Plan 2](docs/Tutorial_Plan_2.png)
+- Create SSR volume resource
+  - Talk about the various methods for integrating
+  - Method 1 - Increase volume at end of activity
 
-- Install [OpenJDK Temurin LTS](https://adoptium.net/temurin/releases/?version=19). If you're on macOS, you can install [brew](https://brew.sh/) instead and then use the following command to install JDK 19:
+  - Method 2 - Increase volume across fixed number of steps within the activity
 
-  ```sh
-  brew tap homebrew/cask-versions
-  brew install --cask temurin19
-  ```
+  - Note why these methods get more challenging with a mode based approach (integral is being tracking in the activity class and therefore activity needs to get track of the time since the mode changed, which isn't really something an activity should know/care about)
 
-  Make sure you update your `JAVA_HOME` environment variable. For example with [Zsh](https://www.zsh.org/) you can update your `.zshrc` with:
+  - Method 3 - Reaction based approach
 
-  ```sh
-  export JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-19.jdk/Contents/Home"
-  ```
+  - Method 4 - Daemon approach
 
-- Set `GITHUB_USER` and `GITHUB_TOKEN` environment variables to your credentials (first you need to create a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic) in your GitHub account) so you can download the Aerie Maven packages from the [GitHub Maven package registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry). For example with Zsh you can update your `.zshrc` to set the variables with:
+  - Method 5 - Polynomial resource
 
-  ```sh
-  export GITHUB_USER=""
-  export GITHUB_TOKEN=""
-  ```
+- Create downlink activity that decreases recording rate at some point for more interesting looking plots
 
-## Building
+- How to show decomposition?? Maybe a calibration that decomposes into CollectData?
 
-To build a mission model JAR you can do:
+- Update Rate/SSR_Volume to Unit Aware Resources
 
-```sh
-./gradlew build --refresh-dependencies # Outputs 'build/libs/firesat.jar'
-```
+- Show setting up tests (unit/simulation)
 
-You can then upload the JAR to Aerie using either the UI or API. If you want to just try the model without building it yourself you can [download it here](./firesat.jar).
-
-## Testing
-
-To run unit tests under [./src/test](./src/test) against your mission model you can do:
-
-```sh
-./gradlew test
-```
+- Simple validation check (max collection rate?)
