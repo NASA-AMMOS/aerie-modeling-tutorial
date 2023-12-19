@@ -58,8 +58,9 @@ public class CollectData {
         //
         // Integration Method 3 - Accumulate data volume upon change to recording rate
         //
-        model.dataModel.increaseRecordingRate(this.rate);
-        model.dataModel.increaseRecordingRate(-this.rate);
+//        model.dataModel.increaseRecordingRate(this.rate);
+//        delay(duration);
+//        model.dataModel.increaseRecordingRate(-this.rate);
 
     }
 }
