@@ -1,7 +1,5 @@
 package missionmodel;
 
-import gov.nasa.jpl.aerie.contrib.models.Register;
-import gov.nasa.jpl.aerie.contrib.serialization.mappers.EnumValueMapper;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
 
 import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.spawn;

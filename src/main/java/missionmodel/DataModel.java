@@ -1,6 +1,7 @@
 package missionmodel;
 
 import gov.nasa.jpl.aerie.contrib.serialization.mappers.DoubleValueMapper;
+import gov.nasa.jpl.aerie.contrib.serialization.mappers.DurationValueMapper;
 import gov.nasa.jpl.aerie.contrib.serialization.mappers.EnumValueMapper;
 import gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource;
 import gov.nasa.jpl.aerie.contrib.streamline.core.Reactions;
@@ -42,9 +43,11 @@ public class DataModel {
 
     private MutableResource<Clock> TimeSinceLastRateChange = (MutableResource<Clock>) clock();
 
+    private MutableResource<Clock> TimeSinceLastRateChange_Sampled = (MutableResource<Clock>) clock();
+
     private final Duration INTEGRATION_SAMPLE_INTERVAL = Duration.duration(60, Duration.SECONDS);
 
-    public Resource<Polynomial> SSR_Volume_Polynomial;  // Gigabits
+    public Resource<Polynomial> SSR_Volume_Polynomial;  // Megabits
 
     private final Double SSR_MAX_CAPACITY = 100.0; // Gigabits
 
@@ -62,6 +65,9 @@ public class DataModel {
         registrar.discrete("MagDataRate", MagDataRate, new DoubleValueMapper());
 
         previousRecordingRate = 0.0;
+
+        TimeSinceLastRateChange = resource(Clock.clock(Duration.ZERO));
+        TimeSinceLastRateChange_Sampled = resource(Clock.clock(Duration.ZERO));
 
         //
         // Integration Method 1 - Accumulate all volume at the end of the activity
@@ -81,19 +87,19 @@ public class DataModel {
         SSR_Volume_UponRateChange = resource(discrete(0.0));
         registrar.discrete("SSR_Volume_UponRateChange", SSR_Volume_UponRateChange, new DoubleValueMapper());
         // Alternate Approach
-        // Reactions.wheneverUpdates(RecordingRate, this::uponRecordingRateUpdate);
+        Reactions.wheneverUpdates(RecordingRate, this::uponRecordingRateUpdate);
 
         //
         // Integration Method 4 - Sample-based integration
         //
         SSR_Volume_Sampled = resource(discrete(0.0));
-        registrar.discrete("SSR_Volume_UponRateChange", SSR_Volume_UponRateChange, new DoubleValueMapper());
+        registrar.discrete("SSR_Volume_Sampled", SSR_Volume_Sampled, new DoubleValueMapper());
 
         //
         // Integration Method 5 - Integrated resource
         //
         // Approach 1 - Simple Integrated Resource
-        SSR_Volume_Polynomial = PolynomialResources.integrate(asPolynomial(this.RecordingRate), 0.0);
+        SSR_Volume_Polynomial = PolynomialResources.integrate(asPolynomial(this.RecordingRate), 0.0); // Mbit
         registrar.real( "SSR_Volume_Polynomial", PolynomialResources.assumeLinear(SSR_Volume_Polynomial));
 
         // Approach 2 - Integral with min/max bounds
@@ -113,7 +119,8 @@ public class DataModel {
         Duration t = currentValue(TimeSinceLastRateChange);
         // Update volume only if time has actually elapsed
         if (!t.isZero()) {
-            DiscreteEffects.increase(this.SSR_Volume_UponRateChange, previousRecordingRate * t.ratioOver(Duration.SECONDS) / 1000.0);
+            DiscreteEffects.increase(this.SSR_Volume_UponRateChange,
+              previousRecordingRate * t.ratioOver(Duration.SECONDS) / 1000.0); // Mbit -> Gbit
         }
         previousRecordingRate = currentValue(RecordingRate);
         // Restart clock (set back to zero)
@@ -135,10 +142,11 @@ public class DataModel {
     // recording rate at each sample.
     public void integrateSampledSSR() {
         while(true) {
-            Duration dt = currentValue(TimeSinceLastRateChange);
+            Duration dt = currentValue(TimeSinceLastRateChange_Sampled);
             Double currentRecordingRate = currentValue(RecordingRate);
-            DiscreteEffects.increase(SSR_Volume_Sampled, currentRecordingRate * dt.ratioOver(Duration.SECONDS) / 1000.0);
-            ClockEffects.restart(TimeSinceLastRateChange);
+            DiscreteEffects.increase(SSR_Volume_Sampled,
+              currentRecordingRate * dt.ratioOver(Duration.SECONDS) / 1000.0); // Mbit -> Gbit
+            ClockEffects.restart(TimeSinceLastRateChange_Sampled);
             delay(INTEGRATION_SAMPLE_INTERVAL);
         }
     }
