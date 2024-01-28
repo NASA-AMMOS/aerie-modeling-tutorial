@@ -34,30 +34,31 @@ public class DataModel {
 
     public MutableResource<Discrete<Double>> SSR_Volume_Sampled; // Gigabits
 
-    private final Duration INTEGRATION_SAMPLE_INTERVAL = Duration.duration(60, Duration.SECONDS);
+    private final Duration INTEGRATION_SAMPLE_INTERVAL; // = Duration.duration(60, Duration.SECONDS);
 
     public MutableResource<Discrete<Double>> SSR_Volume_UponRateChange; // Gigabits
 
     private MutableResource<Clock> TimeSinceLastRateChange;
 
-    private Double previousRecordingRate = 0.0;
+    private Double previousRecordingRate; // = 0.0;
 
     public Resource<Polynomial> SSR_Volume_Polynomial;  // Gigabits
 
-    private final Double SSR_MAX_CAPACITY = 250.0; // Gigabits
+    // private final Double SSR_MAX_CAPACITY = 250.0; // Gigabits
 
     public Resource<Polynomial> RecordingRate_UnitAware;  // Mbps
     public Resource<Polynomial> SSR_Volume_UnitAware;  // Gigabits
 
-    public DataModel(Registrar registrar) {
-        RecordingRate = resource(discrete(0.0));
-        registrar.discrete("RecordingRate", RecordingRate, new DoubleValueMapper());
-
-        MagDataMode = resource(discrete(MagDataCollectionMode.OFF));
+    public DataModel(Registrar registrar, Configuration config) {
+        MagDataMode = resource(discrete(config.startingMagMode()));
         registrar.discrete("MagDataMode",MagDataMode, new EnumValueMapper<>(MagDataCollectionMode.class));
 
         MagDataRate = map(MagDataMode, MagDataCollectionMode::getDataRate);
         registrar.discrete("MagDataRate", MagDataRate, new DoubleValueMapper());
+
+        RecordingRate = resource(discrete(currentValue(MagDataRate)/1e3));
+        registrar.discrete("RecordingRate", RecordingRate, new DoubleValueMapper());
+        previousRecordingRate = currentValue(RecordingRate);
 
         //
         // Integration Method 1 - Accumulate all volume at the end of the activity
@@ -70,6 +71,7 @@ public class DataModel {
         //
         SSR_Volume_Sampled = resource(discrete(0.0));
         registrar.discrete("SSR_Volume_Sampled", SSR_Volume_Sampled, new DoubleValueMapper());
+        INTEGRATION_SAMPLE_INTERVAL = Duration.duration(config.integrationSampleInterval(), Duration.SECONDS);
 
         //
         // Integration Method 3 - Accumulate data volume upon change to recording rate
@@ -85,14 +87,14 @@ public class DataModel {
         //
         // Approach 1 - Simple Integrated Resource
 //        SSR_Volume_Polynomial = scale(
-//          PolynomialResources.integrate(asPolynomial(this.RecordingRate), 0.0), 10e-4); // Gbit
+//          PolynomialResources.integrate(asPolynomial(this.RecordingRate), 0.0), 1e-3); // Gbit
 //        registrar.real( "SSR_Volume_Polynomial", PolynomialResources.assumeLinear(SSR_Volume_Polynomial));
 
         // Approach 2 - Integral with min/max bounds
         var clampedIntegrate = PolynomialResources.clampedIntegrate( scale(
-          asPolynomial(this.RecordingRate), 10e-4),
+          asPolynomial(this.RecordingRate), 1e-3),
           PolynomialResources.constant(0.0),
-          PolynomialResources.constant(SSR_MAX_CAPACITY),
+          PolynomialResources.constant(config.ssrMaxCapacity()),
           0.0);
         SSR_Volume_Polynomial = clampedIntegrate.integral();
         registrar.real( "SSR_Volume_Polynomial", PolynomialResources.assumeLinear(SSR_Volume_Polynomial));

@@ -12,7 +12,7 @@ public final class Mission {
   public Mission(final gov.nasa.jpl.aerie.merlin.framework.Registrar registrar, final Configuration config) {
     this.errorRegistrar = new Registrar(registrar, Registrar.ErrorBehavior.Log);
     // Tutorial code
-    this.dataModel = new DataModel(this.errorRegistrar);
+    this.dataModel = new DataModel(this.errorRegistrar, config);
 
     //
     // Integration Method 4 - Sample-based integration
