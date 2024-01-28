@@ -49,7 +49,7 @@ public class CollectData {
         // Integration Method 1 - Accumulate all volume at the end of the activity
         //
         // Divide by 1000 to go from Mb->Gb
-        DiscreteEffects.increase(model.dataModel.SSR_Volume,this.rate*duration.ratioOver(SECONDS)/1000.0);
+        DiscreteEffects.increase(model.dataModel.SSR_Volume_Simple,this.rate*duration.ratioOver(SECONDS)/1000.0);
 
         //
         // Integration Method 2 - Spread out accumulation over many steps (improves resource accuracy during the time span of the
