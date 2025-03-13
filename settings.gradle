@@ -1,5 +1,4 @@
 rootProject.name = 'aerie-modeling-tutorial'
 include('missionmodel')
 include('scheduling')
-//include('constraints')
-//includeBuild('/Users/eferguso/Desktop/MGSS/MPSA/Aerie/src/aerie')
+include('constraints')
