@@ -2,3 +2,4 @@ rootProject.name = 'aerie-modeling-tutorial'
 include('missionmodel')
 include('scheduling')
 include('constraints')
+include('stateless')
