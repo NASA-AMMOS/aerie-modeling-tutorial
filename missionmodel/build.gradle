@@ -23,13 +23,28 @@ tasks.named('test') {
 }
 
 dependencies {
+  // procedural scheduling libraries
+  annotationProcessor "gov.nasa.ammos.aerie.procedural:processor:" + project.aerieVersion
+  implementation "gov.nasa.ammos.aerie.procedural:scheduling:" + project.aerieVersion
+  implementation "gov.nasa.ammos.aerie.procedural:timeline:" + project.aerieVersion
+  implementation "gov.nasa.ammos.aerie.procedural:constraints:" + project.aerieVersion
+
+  // standard aerie deps
   annotationProcessor 'gov.nasa.jpl.aerie:merlin-framework-processor:' + project.aerieVersion
   implementation 'gov.nasa.jpl.aerie:contrib:' + project.aerieVersion
   implementation 'gov.nasa.jpl.aerie:merlin-framework:' + project.aerieVersion
   implementation 'gov.nasa.jpl.aerie:merlin-sdk:' + project.aerieVersion
   implementation 'gov.nasa.jpl.aerie:merlin-driver:' + project.aerieVersion
   implementation 'gov.nasa.jpl.aerie:parsing-utilities:' + project.aerieVersion
+  implementation 'gov.nasa.jpl.aerie:type-utils:' + project.aerieVersion
 
+  // aerie stateless dependencies (used for testing)
+  implementation 'gov.nasa.ammos.aerie.procedural:utils:' + project.aerieVersion
+  implementation 'gov.nasa.jpl.aerie:orchestration-utils:' + project.aerieVersion
+  implementation 'gov.nasa.jpl.aerie:permissions:' + project.aerieVersion
+
+  // test dependencies
   testImplementation 'gov.nasa.jpl.aerie:merlin-framework-junit:' + project.aerieVersion
   testImplementation 'org.junit.jupiter:junit-jupiter:+'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
